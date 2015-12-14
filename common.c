@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "common.h"
 
 void get_hex_address(char buf[], char ori_address[])
@@ -10,10 +7,7 @@ void get_hex_address(char buf[], char ori_address[])
 	{
 		if(buf[i]=='\n') swit=0;
 
-		if(swit)
-		{
-			ori_address[j++] = buf[i];
-		}
+		if(swit) ori_address[j++] = buf[i];
 
 		if(buf[i]==' ') swit=1;
 	}
@@ -54,16 +48,12 @@ int power_2(int data)
 
 int get_data(char data[], int from, int to)
 {
-	//cout << data << endl;
-	//cout << "from:" << from << ", to:" << to << endl;
 	int i, result, k=1;
 	result = 0;
 	for(i=from; i<=to; i++)
 	{
-		//cout << data[i];
 		result += (data[i]-'0') * k;
 		k*=2;
 	}
-	//cout <<endl;
 	return result;
 }

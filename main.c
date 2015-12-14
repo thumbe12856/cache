@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
+#include "cache.h"
 
 int main(int argc, char* argv[])
 {
@@ -10,10 +11,15 @@ int main(int argc, char* argv[])
 	int associative = atoi(argv[3]);
 	int offset = power_2(block_size);
 
-	int index_to = power_2((cache_size/block_size)/associative) + offset -1;
+	int cache_index = (cache_size/block_size)/associative;
+	int index_to = power_2(cache_index) + offset -1;
 	int index_from = offset;
 	int tag_to = 23;
 	int tag_from = index_to + 1;
+
+
+	set_cache(cache_index, associative);
+	//cache_print();
 
 	FILE *fp;
 	fp = fopen("temp.din", "r");
@@ -34,17 +40,5 @@ int main(int argc, char* argv[])
 		}
 	}
 	fclose(fp);
-	/*char ori_address[] = "408ed4";
-	
-
-	hex_to_bin(ori_address, bin_address);
-
-	int index_to = power_2((cache_size/block_size)/associative) + offset -1;
-	int index_from = offset;
-	int index = get_data(bin_address, index_from, index_to);
-
-	int tag_to = 23;
-	int tag_from = index_to + 1;
-	int tag = get_data(bin_address, tag_from, tag_to);*/
 	return 0;
 }
