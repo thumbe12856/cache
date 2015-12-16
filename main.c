@@ -19,57 +19,62 @@ int main(int argc, char* argv[])
 	int tag_to = 23;
 	int tag_from = index_to + 1;
 
-
+	//printf("index_from:%d, index_to:%d\n", index_from, index_to);
 	initail_cache(cache_index, associative, index_to-index_from, tag_to-tag_from, replace_policy);
 
 	FILE *fp;
 	fp = fopen("gcc.din", "r");
 	char buf[100];
 	char ori_address[6];
-	char bin_address[24];
-
+	char bin_address[32];
+	int index, tag;
 	int r_data_count = 0, w_data_count = 0;
 
 	while(fgets(buf, 100, fp))
 	{
 		char c = buf[0];
 		get_hex_address(buf, ori_address);
-		hex_to_bin(ori_address, bin_address);
-		int index = get_data(bin_address, index_from, index_to);
-		int tag;
 		//printf("%s -> -%s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
 
 		switch(c)
 		{
 			case '0':
-				//printf("read data\n\n");
+				hex_to_bin(ori_address, bin_address, 31);
+				index = get_data(bin_address, index_from, index_to);
 				tag_to = 31;
 				tag = get_data(bin_address, tag_from, tag_to);
-				check_cache(index, tag);
+				//printf("read data\n");
+				//printf("%s -> %s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
+				set_cache(index, tag, 0);
 				r_data_count++;
 			break;
 
 			case '1':
-				//printf("write data\n\n");
+				hex_to_bin(ori_address, bin_address, 31);
+				index = get_data(bin_address, index_from, index_to);
 				tag_to = 31;
 				tag = get_data(bin_address, tag_from, tag_to);
-				check_cache(index, tag);
+				//printf("write data\n");
+				//printf("%s -> %s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
+				set_cache(index, tag, 1);
 				w_data_count++;
 			break;
 			case '2':
-				//printf("instruction\n\n");
 				/*get_hex_address(buf, ori_address);
 				hex_to_bin(ori_address, bin_address);
 				int index = get_data(bin_address, index_from, index_to);*/
+				hex_to_bin(ori_address, bin_address, 23);
+				index = get_data(bin_address, index_from, index_to);
 				tag_to = 23;
 				tag = get_data(bin_address, tag_from, tag_to);
-				//printf("%s -> -%s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
-				set_cache(index, tag);
+				//printf("instruction\n");
+				//printf("%s -> %s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
+				set_cache(index, tag, 2);
 			break;
 		}
 	}
 	cache_print();
-	printf("r_data_count:%d, w_data_count:%d\n", r_data_count, w_data_count);
+	//printf("r_data_count:%d, w_data_count:%d\n", r_data_count, w_data_count);
 	fclose(fp);
 	return 0;
 }

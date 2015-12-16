@@ -15,11 +15,11 @@ void get_hex_address(char buf[], char ori_address[])
 	return;
 }
 
-void hex_to_bin(char hex_data[], char bin_data[])
+void hex_to_bin(char hex_data[], char bin_data[], int to)
 {
 	char temp_addr[4];
-	int i, j=23, k, ii, temp;
-	for(i=0; i<6; i++)
+	int i, j=to, k, ii, temp;
+	for(i=0; i<(to+1)/4; i++)
 	{
 		if(hex_data[i] <='9' && '0'<=hex_data[i]) temp = hex_data[i] - '0';
 		else temp = hex_data[i] - 'a' + 10;
@@ -32,6 +32,7 @@ void hex_to_bin(char hex_data[], char bin_data[])
 		}
 		for(k=3; k>=0; k--) bin_data[j--] = temp_addr[k];
 	}
+	bin_data[to+1] = '\0';
 	return;
 }
 
