@@ -2,18 +2,18 @@
 
 int byte_to_mem = 0, byte_from_mem = 0;
 int hit = 0, miss = 0;
-int cache_index;
-int associative;
+int cache_index, associative, block_size;
 char replace_policy[10];
 //char ***cache_data;
 int ***cache_data;
 int *fifo;
 
-void initail_cache(int c_index, int ass, int index_size, int tag_size, char r_policy[])
+void initail_cache(int c_index, int ass, int index_size, int tag_size, char r_policy[], int b_size)
 {
 	int i, j, k;
 	cache_index = c_index;
 	associative = ass;
+	block_size = b_size;
 	strcpy(replace_policy, r_policy);
 	
 	/*
@@ -51,10 +51,10 @@ void set_cache(int index, int tag, int option)
 			miss++;
 			cache_data[index][i][1] = 1;
 			cache_data[index][i][2] = tag;
+			byte_from_mem++;//read data from memory
 
 			if(option==0 || option==1)
 			{
-				byte_from_mem++;//read data from memory
 
 				//read : dirty bit = 0
 				//write : dirty bit = 1
@@ -79,6 +79,7 @@ void set_cache(int index, int tag, int option)
 	{
 		//printf("miss\n\n");
 		miss++;
+		byte_from_mem++;//read data from memory
 		replace(index, tag, option);
 	}
 	return;
@@ -101,13 +102,11 @@ void replace(int index, int tag, int option)
 
 void mFIFO(int index, int tag, int option)
 {
+	if(cache_data[index][fifo[index]%associative][0]==1)//dirty bit == 1
+		byte_to_mem++;//write data back to memory
 	//read=0 || write=1
 	if(option==0 || option==1)
 	{
-		if(cache_data[index][fifo[index]%associative][0]==1)//dirty bit == 1
-			byte_to_mem++;//write data back to memory
-		byte_from_mem++;//read data from memory
-
 		//read : dirty bit = 0
 		//write : dirty bit = 1
 		cache_data[index][fifo[index]%associative][0] = option;
@@ -129,15 +128,18 @@ void cache_print()
 	cache_data[2][0][1] = 118;*/
 	for(j=0; j<cache_index; j++)
 	{
-		printf("%d:  ", j);
+		//printf("%d:  ", j);
 		for(i=0; i<associative; i++)
-			printf("%d:  dirty:%d, valid:%d, tag:%d\t",i ,cache_data[j][i][0], cache_data[j][i][1] ,cache_data[j][i][2]);
-		printf("\n");
+		{
+			//printf("%d:  dirty:%d, valid:%d, tag:%d\t",i ,cache_data[j][i][0], cache_data[j][i][1] ,cache_data[j][i][2]);
+			if(cache_data[j][i][0]==1) byte_to_mem++;//dirty bit ==1, write back to memory
+		}
+		//printf("\n");
 	}
 
-	printf("\n\nreplace_policy:%s\n", replace_policy);
-	printf("cache_index:%d, associative:%d\n", cache_index, associative);
-	printf("hit:%d, miss:%d\n", hit, miss);
-	printf("byte_from_mem:%d, byte_to_mem:%d\n",byte_from_mem, byte_to_mem);
+	//printf("\n\nreplace_policy:%s\n", replace_policy);
+	//printf("cache_index:%d, associative:%d\n", cache_index, associative);
+	printf("Cache hit:%d, Cache miss:%d, Miss rate:%.4f\n", hit, miss, ((float)miss/(float)(hit+miss)));
+	printf("Bytes from memory:%d, Byte to memory:%d\n",byte_from_mem*block_size, byte_to_mem*block_size);
 	return;
 }
