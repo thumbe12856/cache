@@ -7,7 +7,8 @@ char replace_policy[10];
 //char ***cache_data;
 int ***cache_data;
 int *fifo;
-int  **lru, *lru_now;
+int **lru, *lru_now;
+int **lfu, *lfu_now;
 
 void initail_cache(int c_index, int ass, int index_size, int tag_size, char r_policy[], int b_size)
 {
@@ -24,12 +25,15 @@ void initail_cache(int c_index, int ass, int index_size, int tag_size, char r_po
 	 */
 	cache_data = (int ***)malloc(sizeof(int **) * cache_index);
 	fifo = (int *)malloc(sizeof(int ) * cache_index);
-	lru =  (int **)malloc(sizeof(int* ) * cache_index);
+	lru = (int **)malloc(sizeof(int* ) * cache_index);
+	lfu = (int **)malloc(sizeof(int* ) * cache_index);
+	lfu_now = (int *)malloc(sizeof(int ) * cache_index);
 	lru_now = (int *)malloc(sizeof(int ) * cache_index);
 	for(i=0; i<cache_index; i++)
 	{
 		cache_data[i] = (int **)malloc(sizeof(int*) * associative);
 		lru[i] =  (int *)malloc(sizeof(int ) * associative);
+		lfu[i] =  (int *)malloc(sizeof(int ) * associative);
 		for(j=0; j<associative; j++)
 			cache_data[i][j] = (int*)malloc(sizeof(int) * 4);
 	}
@@ -38,9 +42,11 @@ void initail_cache(int c_index, int ass, int index_size, int tag_size, char r_po
 	{
 		fifo[j] = 0;
 		lru_now[j] = 0;
+		lfu_now[j] = 0;
 		for(i=0; i<associative; i++)
 		{
 			lru[j][i] = 0;
+			lfu[j][i] = 0;
 			cache_data[j][i][0]=0;
 			cache_data[j][i][1]=0;
 			cache_data[j][i][2]=0;
@@ -62,6 +68,9 @@ void set_cache(int index, int tag, int option)
 			for(j=0; j<lru_now[index]; j++)
 				lru[index][j]++;
 
+			lfu_now[index]++;//lfu now +1
+			lfu[index][i] = 1;
+
 			which_cache_to_replace(index, tag, i, option);
 			return;
 		}
@@ -72,7 +81,7 @@ void set_cache(int index, int tag, int option)
 				cache_data[index][i][0] = 1;
 			
 			if(strcmp(replace_policy, "LRU")==0) hLRU(index, i);
-
+			else if(strcmp(replace_policy, "LFU")==0) hLFU(index, i);
 			return;
 		}
 	}
@@ -95,6 +104,7 @@ void replace(int index, int tag, int option)
 {
 	if(strcmp(replace_policy, "FIFO")==0) mFIFO(index, tag, option);
 	else if(strcmp(replace_policy, "LRU")==0) mLRU(index, tag, option);
+	else if(strcmp(replace_policy, "LFU")==0) mLFU(index, tag, option);
 	return;
 }
 
@@ -102,7 +112,7 @@ void which_cache_to_replace(int index, int tag, int ass, int option)
 {
 	if(cache_data[index][ass][0]==1)//dirty bit == 1
 		byte_to_mem++;//write data back to memory
-	//read=0 || write=1
+	//read || write
 	if(option==0 || option==1)
 	{
 		//read : dirty bit = 0
@@ -150,20 +160,43 @@ void mLRU(int index, int tag, int option)
 	return;
 }
 
-void cache_print()
+void hLFU(int index, int target)
+{
+	lfu[index][target]++;
+	return;
+}
+
+void mLFU(int index, int tag, int option)
+{
+	int i, smallest = 2100000000, smallest_index;
+	for(i=0; i<lfu_now[index]; i++)
+	{
+		if(smallest > lfu[index][i])
+		{
+			smallest = lfu[index][i];
+			smallest_index = i;
+		}
+	}
+	lfu[index][smallest_index] = 1;
+	which_cache_to_replace(index, tag, smallest_index, option);
+}
+
+void cache_print(int demand_count, int r_data_count, int w_data_count)
 {
 	int i, j;
 	for(j=0; j<cache_index; j++)
 	{
-		//printf("-%d:  ", j);
+		//printf("*%d:  ", j);
 		for(i=0; i<associative; i++)
 		{
-			//printf("---%d:  dirty:%d, valid:%d, tag:%d, lru times:%d\n",i ,cache_data[j][i][0], cache_data[j][i][1] ,cache_data[j][i][2], lru[j][i]);
+			//printf("***%d:  dirty:%d, valid:%d, tag:%d, lfu times:%d\n",i ,cache_data[j][i][0], cache_data[j][i][1] ,cache_data[j][i][2], lfu[j][i]);
 			if(cache_data[j][i][0]==1) byte_to_mem++;//dirty bit ==1, write back to memory
 		}
 		//printf("\n");
 	}
+	printf("Demand fetch:\t\t%10d\n", demand_count);
 	printf("Cache hit:\t\t%10d\nCache miss:\t\t%10d\nMiss rate:\t\t%10.4f\n", hit, miss, ((float)miss/(float)(hit+miss)));
+	printf("Read data:\t\t%10d\nWrite data:\t\t%10d\n", r_data_count, w_data_count);
 	printf("Bytes from memory:\t%10d\nBytes to memory:\t%10d\n",byte_from_mem*block_size, byte_to_mem*block_size);
 	return;
 }

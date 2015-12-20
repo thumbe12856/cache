@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
 
 	//printf("cache_index:%d, offset:%d, associative:%d, index_from:%d, index_to:%d, tag_from:%d\n", cache_index, offset, associative, index_from, index_to, tag_from);
 	initail_cache(cache_index, associative, index_to-index_from, tag_to-tag_from, replace_policy, block_size);
+	//fprintf(stderr, "%s -> -%s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
 
 	FILE *fp;
 	fp = fopen(filename, "r");
@@ -37,7 +38,6 @@ int main(int argc, char* argv[])
 	{
 		demand_count++;
 		char c = buf[0];
-		//printf("%s -> -%s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
 
 		switch(c)
 		{
@@ -68,12 +68,10 @@ int main(int argc, char* argv[])
 		hex_to_bin(ori_address, bin_address, hex_to_bin_option);
 		index = fully_associative_swit==1 ? 0 : get_data(bin_address, index_from, index_to);
 		tag = get_data(bin_address, tag_from, tag_to);
-		//printf("%s -> %s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
+		//fprintf(stderr, "%s -> -%s\nindex:%d, tag:%d\n", ori_address, bin_address, index, tag);
 		set_cache(index, tag, set_cache_option);
 	}
-	printf("Demand fetch:\t\t%10d\n", demand_count);
-	printf("Read data:\t\t%10d\nWrite data:\t\t%10d\n", r_data_count, w_data_count);
-	cache_print();
 	fclose(fp);
+	cache_print(demand_count, r_data_count, w_data_count);
 	return 0;
 }

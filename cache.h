@@ -8,4 +8,6 @@ void which_cache_to_replace(int index, int tag, int ass, int option);
 void mFIFO(int index, int tag, int option);
 void hLRU(int index, int tag);
 void mLRU(int index, int tag, int option);
-void cache_print();
+void hLFU(int index, int tag);
+void mLFU(int index, int tag, int option);
+void cache_print(int demand_count, int r_data_count, int w_data_count);
