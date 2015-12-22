@@ -163,6 +163,7 @@ void mLRU(int index, int tag, int option)
 void hLFU(int index, int target)
 {
 	lfu[index][target]++;
+	//lru[index][target] = 1;
 	return;
 }
 
@@ -171,13 +172,24 @@ void mLFU(int index, int tag, int option)
 	int i, smallest = 2100000000, smallest_index;
 	for(i=0; i<lfu_now[index]; i++)
 	{
+		lru[index][i]++;
 		if(smallest > lfu[index][i])
 		{
 			smallest = lfu[index][i];
 			smallest_index = i;
 		}
+		else if(smallest == lfu[index][i])//frequency the same
+		{
+			if(lru[index][smallest_index] < lru[index][i])//who is older
+			{
+				smallest = lfu[index][i];
+				smallest_index = i;
+			}
+		}
 	}
 	lfu[index][smallest_index] = 1;
+	lru[index][smallest_index] = 1;
+
 	which_cache_to_replace(index, tag, smallest_index, option);
 }
 
@@ -189,7 +201,7 @@ void cache_print(int demand_count, int r_data_count, int w_data_count)
 		//printf("*%d:  ", j);
 		for(i=0; i<associative; i++)
 		{
-			//printf("***%d:  dirty:%d, valid:%d, tag:%d, lfu times:%d\n",i ,cache_data[j][i][0], cache_data[j][i][1] ,cache_data[j][i][2], lfu[j][i]);
+			//printf("***%d:  dirty:%d, valid:%d, tag:%d, lfu times:%d, lru times:%d\n",i ,cache_data[j][i][0], cache_data[j][i][1] ,cache_data[j][i][2], lfu[j][i], lru[j][i]);
 			if(cache_data[j][i][0]==1) byte_to_mem++;//dirty bit ==1, write back to memory
 		}
 		//printf("\n");

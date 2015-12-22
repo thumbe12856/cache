@@ -1,5 +1,5 @@
 all: main.o  common.o cache.o
-	gcc main.o common.o cache.o
+	gcc main.o common.o cache.o -o cache
 
 main.o: main.c
 	gcc -c main.c
@@ -11,4 +11,4 @@ cache.o: cache.c
 	gcc -c cache.c
 
 clean:
-	rm a.out main.o common.o cache.o
+	rm cache main.o common.o cache.o
