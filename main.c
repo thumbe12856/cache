@@ -39,22 +39,14 @@ int main(int argc, char* argv[])
 		demand_count++;
 		char c = buf[0];
 		get_hex_address(buf, ori_address);
-
+		hex_to_bin_option = strlen(ori_address)*4 - 1;
+		tag_to = strlen(ori_address)*4 - 1;
+		
 		switch(c)
 		{
 			case '0':
 				//printf("read data\n");
 				//hex_to_bin_option = 31;
-				if(strlen(ori_address)==8)
-				{
-					hex_to_bin_option = 31;
-					tag_to = 31;
-				}
-				else if(strlen(ori_address)==6)
-				{
-					hex_to_bin_option = 23;
-					tag_to = 23;
-				}
 				//tag_to = 31;
 				set_cache_option = 0;
 				r_data_count++;
@@ -62,32 +54,11 @@ int main(int argc, char* argv[])
 
 			case '1':
 				//printf("write data\n");
-				hex_to_bin_option = 31;
-				if(strlen(ori_address)==8)
-				{
-					hex_to_bin_option = 31;
-					tag_to = 31;
-				}
-				else if(strlen(ori_address)==6)
-				{
-					hex_to_bin_option = 23;
-					tag_to = 23;
-				}
 				set_cache_option = 1;
 				w_data_count++;
 			break;
 			case '2':
 				//printf("instruction\n");
-				if(strlen(ori_address)==8)
-				{
-					hex_to_bin_option = 31;
-					tag_to = 31;
-				}
-				else if(strlen(ori_address)==6)
-				{
-					hex_to_bin_option = 23;
-					tag_to = 23;
-				}
 				set_cache_option = 2;
 			break;
 		}
