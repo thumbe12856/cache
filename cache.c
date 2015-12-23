@@ -55,13 +55,15 @@ void initail_cache(int c_index, int ass, int index_size, int tag_size, char r_po
 	return;
 }
 
-void set_cache(int index, int tag, int option)
+void set_cache(int index, int tag, int option,int demand_count)
 {
 	int i, j, miss_swit=1;
 	for(i=0; i<associative; i++)
 	{
 		if(cache_data[index][i][1] == 0)	//when block is not full and instruction
 		{
+			/*if(i==associative-1)
+			printf("demand:%d, tag:%d, index:%d\n", demand_count, tag, index);*/
 			miss++;
 			byte_from_mem++;//read data from memory
 			lru_now[index]++;//lru now +1
@@ -82,6 +84,7 @@ void set_cache(int index, int tag, int option)
 			
 			if(strcmp(replace_policy, "LRU")==0) hLRU(index, i);
 			else if(strcmp(replace_policy, "LFU")==0) hLFU(index, i);
+			else if(strcmp(replace_policy, "MRU")==0) hMRU(index, i);
 			return;
 		}
 	}
@@ -105,6 +108,8 @@ void replace(int index, int tag, int option)
 	if(strcmp(replace_policy, "FIFO")==0) mFIFO(index, tag, option);
 	else if(strcmp(replace_policy, "LRU")==0) mLRU(index, tag, option);
 	else if(strcmp(replace_policy, "LFU")==0) mLFU(index, tag, option);
+	else if(strcmp(replace_policy, "MRU")==0) mMRU(index, tag, option);
+
 	return;
 }
 
@@ -191,6 +196,57 @@ void mLFU(int index, int tag, int option)
 	lru[index][smallest_index] = 1;
 
 	which_cache_to_replace(index, tag, smallest_index, option);
+}
+
+void hMRU(int index, int target)
+{
+	/*lfu[index][target]++;
+	//lru[index][target] = 1;
+	return;*/
+	int i;
+	for(i=0; i<lru_now[index]; i++)
+		lru[index][i]++;
+	lru[index][target] = 1;
+	return;
+}
+
+void mMRU(int index, int tag, int option)
+{
+	/*int i, biggest = -1, biggest_index;
+	for(i=0; i<lfu_now[index]; i++)
+	{
+		lru[index][i]++;
+		if(biggest < lfu[index][i])
+		{
+			biggest = lfu[index][i];
+			biggest_index = i;
+		}
+		else if(biggest == lfu[index][i])//frequency the same
+		{
+			if(lru[index][biggest_index] < lru[index][i])//who is older
+			{
+				biggest = lfu[index][i];
+				biggest_index = i;
+			}
+		}
+	}
+	lfu[index][biggest_index] = 1;
+	lru[index][biggest_index] = 1;
+
+	which_cache_to_replace(index, tag, biggest_index, option);*/
+
+	int i, early = 2147000000, early_index;
+	for(i=0; i<lru_now[index]; i++)
+	{
+		if(lru[index][i] < early)
+		{
+			early = lru[index][i];
+			early_index = i;
+		}
+		lru[index][i]++;
+	}
+	lru[index][early_index] = 1;
+	which_cache_to_replace(index, tag, early_index, option);
 }
 
 void cache_print(int demand_count, int r_data_count, int w_data_count)
